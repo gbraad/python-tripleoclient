@@ -126,6 +126,19 @@ class ValidateInstackEnv(command.Command):
                     self.error_count += 1
                 baremetal_ips.append(node['pm_addr'])
 
+            if node['pm_type'] == "pxe_amt":
+                self.log.debug("Identified baremetal AMT node")
+                # http://acksyn.org/files/tripleo/nuc.patch
+                cmd = ('wsman -V -v identify -h %s --port 16992 -u %s --password=\'%s\'' %
+                       (node['pm_addr'], node['pm_user'], node['pm_password']))
+             
+                self.log.debug("Executing: %s", cmd)
+                status = utils.run_shell(cmd)
+                if status != 0:
+                    self.log.error('ERROR: wsmanfailed')
+                    self.error_count += 1
+                baremetal_ips.append(node['pm_addr'])
+
         if not utils.all_unique(baremetal_ips):
             self.log.error('ERROR: Baremetals IPs are not all unique.')
             self.error_count += 1
